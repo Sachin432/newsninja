@@ -37,6 +37,16 @@ def show_error(title: str, details: str | None = None):
             st.code(details)
 
 
+@st.cache_data(show_spinner=False)
+def get_news(topic: str):
+    return fetch_google_news(topic)
+
+
+@st.cache_data(show_spinner=False)
+def get_reddit(topic: str):
+    return fetch_reddit(topic)
+
+
 # -----------------------------
 # App
 # -----------------------------
@@ -129,16 +139,20 @@ def main():
                 reddit_data = None
 
                 if source_type in ["news", "both"]:
-                    news_data = fetch_google_news(topic)
+                    news_data = get_news(topic)
 
                 if source_type in ["reddit", "both"]:
-                    reddit_data = fetch_reddit(topic)
+                    reddit_data = get_reddit(topic)
 
                 summary = generate_summary(
                     topic=topic,
                     news=news_data,
                     reddit=reddit_data
                 )
+
+                if not summary or summary.lower().startswith("summary generation failed"):
+                    show_error("Summary could not be generated", summary)
+                    return
 
                 st.success("Summary generated")
 
