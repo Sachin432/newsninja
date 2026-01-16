@@ -13,3 +13,5 @@ tenacity
 aiolimiter
 gtts
 elevenlabs
+feedparser
+
