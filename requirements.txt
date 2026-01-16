@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+streamlit
+requests
+python-dotenv
+beautifulsoup4
+pydantic
+langsmith
+langchain
+sentence-transformers
+groq
+tenacity
+aiolimiter
+gtts
+elevenlabs
