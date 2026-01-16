@@ -6,20 +6,11 @@ from typing import Optional
 # -----------------------------
 # Configuration
 # -----------------------------
-MODEL_ID = "llama-3.1-8b-instant"   # supported, stable
+MODEL_ID = "llama-3.1-8b-instant"
 TEMPERATURE = 0.3
-MAX_TOKENS = 600                   # enough for ~150 words
+MAX_TOKENS = 600
 RETRIES = 2
 RETRY_DELAY_SEC = 0.5
-
-
-# -----------------------------
-# Client Initialization
-# -----------------------------
-if not settings.GROQ_API_KEY:
-    raise RuntimeError("GROQ_API_KEY is missing. Check your .env file.")
-
-client = Groq(api_key=settings.GROQ_API_KEY)
 
 
 # -----------------------------
@@ -31,20 +22,16 @@ def groq_summarize(
 ) -> str:
     """
     Generate a concise text summary using Groq LLM.
-
-    Args:
-        prompt: User prompt containing news/reddit context.
-        system_message: Optional system instruction override.
-
-    Returns:
-        Summary text (string).
-
-    Raises:
-        RuntimeError on repeated failures.
+    Always fails gracefully (safe for Streamlit Cloud).
     """
 
     if not prompt or not prompt.strip():
         raise ValueError("Prompt cannot be empty.")
+
+    if not settings.GROQ_API_KEY:
+        raise RuntimeError("GROQ_API_KEY is missing. Check Streamlit secrets.")
+
+    client = Groq(api_key=settings.GROQ_API_KEY)
 
     sys_msg = system_message or (
         "You are a professional news analyst who writes concise, factual summaries. "
@@ -75,7 +62,7 @@ def groq_summarize(
             last_error = e
             if attempt < RETRIES:
                 time.sleep(RETRY_DELAY_SEC)
-            else:
-                break
 
-    raise RuntimeError(f"Groq summarization failed after {RETRIES} attempts: {last_error}")
+    raise RuntimeError(
+        f"Groq summarization failed after {RETRIES} attempts: {last_error}"
+    )
