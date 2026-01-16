@@ -28,21 +28,25 @@ def fetch_google_news(topic: str) -> str:
             timeout=30
         )
 
-        if res.status_code != 200 or not res.text:
-            return "No news available."
+        # -------- SAFETY CHECKS --------
+        if res.status_code != 200:
+            return "No official news available."
+
+        if not res.text or len(res.text.strip()) < 100:
+            return "No official news available."
 
         soup = BeautifulSoup(res.text, "html.parser")
 
-        headlines = [
-            h.get_text(strip=True)
-            for h in soup.find_all("h3")
-            if h.get_text(strip=True)
-        ][:10]
+        headlines = []
+        for h in soup.find_all("h3"):
+            text = h.get_text(strip=True)
+            if text:
+                headlines.append(text)
 
         if not headlines:
-            return "No news available."
+            return "No official news available."
 
-        return "\n".join(headlines)
+        return "\n".join(headlines[:10])
 
     except Exception as e:
         return f"News fetch failed: {str(e)}"
