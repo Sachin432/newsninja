@@ -1,7 +1,15 @@
+import os
 import sys
 from pathlib import Path
 import streamlit as st
 from typing import Literal
+
+# ==================================================
+# EXPOSE STREAMLIT SECRETS AS ENV VARS (CRITICAL)
+# ==================================================
+# LangChain + LangSmith only read from os.environ
+for key, value in st.secrets.items():
+    os.environ[key] = str(value)
 
 # ==================================================
 # FIX IMPORT PATH FOR STREAMLIT CLOUD
@@ -16,7 +24,6 @@ if str(ROOT_DIR) not in sys.path:
 from backend.news_scraper import fetch_google_news
 from backend.reddit_scraper import fetch_reddit
 from backend.summarizer import generate_summary
-
 
 # -----------------------------
 # Page Config
@@ -150,8 +157,8 @@ def main():
                     reddit=reddit_data
                 )
 
-                if not summary or summary.lower().startswith("summary generation failed"):
-                    show_error("Summary could not be generated", summary)
+                if not summary or not summary.strip():
+                    show_error("Summary could not be generated", "Empty response.")
                     return
 
                 st.success("Summary generated")
