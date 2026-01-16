@@ -15,4 +15,5 @@ gtts
 elevenlabs
 feedparser
 langchain-groq
+langchain-core
 
