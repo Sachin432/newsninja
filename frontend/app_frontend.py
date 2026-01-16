@@ -1,5 +1,14 @@
+import sys
+from pathlib import Path
 import streamlit as st
 from typing import Literal
+
+# ==================================================
+# FIX IMPORT PATH FOR STREAMLIT CLOUD
+# ==================================================
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
 
 # =============================
 # IMPORT BACKEND LOGIC DIRECTLY
@@ -38,7 +47,7 @@ def main():
         unsafe_allow_html=True
     )
     st.markdown(
-        "<p style='text-align:center; font-size:1.2rem; color:gray;'>Your AI Journalist</p>",
+        "<p style='text-align:center; font-size:1.2rem; color:gray;'>Your Personal AI Journalist</p>",
         unsafe_allow_html=True
     )
 
@@ -145,10 +154,7 @@ def main():
                 )
 
             except Exception as e:
-                show_error(
-                    "Failed to generate summary",
-                    str(e)
-                )
+                show_error("Failed to generate summary", str(e))
 
 
 # -----------------------------
