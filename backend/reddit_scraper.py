@@ -1,44 +1,58 @@
 import requests
+from bs4 import BeautifulSoup
+from urllib.parse import quote_plus
 from backend.config import settings
 
 
 def fetch_reddit(topic: str) -> str:
-    if not topic or not topic.strip():
-        return "No topic provided."
+    """
+    Fetch recent Reddit discussion titles using Bright Data.
+    Returns newline-separated post titles.
+    """
 
-    url = f"https://www.reddit.com/search.json?q={topic}&sort=new&limit=5"
+    if not topic or not topic.strip():
+        return "No Reddit discussions available."
+
+    # Reddit search URL (HTML, not JSON)
+    url = f"https://www.reddit.com/search/?q={quote_plus(topic)}&sort=new"
+
+    payload = {
+        "zone": settings.BRIGHTDATA_ZONE,
+        "url": url,
+        "format": "raw"
+    }
+
     headers = {
-        "User-Agent": "NewsNinjaBot/1.0"
+        "Authorization": f"Bearer {settings.BRIGHTDATA_API_KEY}"
     }
 
     try:
-        r = requests.get(url, headers=headers, timeout=15)
+        response = requests.post(
+            "https://api.brightdata.com/request",
+            json=payload,
+            headers=headers,
+            timeout=30
+        )
 
-        # -------- Status check --------
-        if r.status_code != 200 or not r.text:
+        if response.status_code != 200 or not response.text:
             return "No Reddit discussions available."
 
-        # -------- Safe JSON parse --------
-        try:
-            data = r.json()
-        except ValueError:
-            # Reddit returned HTML / blocked page
-            return "No Reddit discussions available."
-
-        children = data.get("data", {}).get("children", [])
-        if not children:
-            return "No Reddit discussions available."
+        soup = BeautifulSoup(response.text, "html.parser")
 
         posts = []
-        for c in children[:5]:
-            title = c.get("data", {}).get("title")
-            if title:
-                posts.append(title)
+
+        # Reddit post titles are inside <h3> tags
+        for h3 in soup.find_all("h3"):
+            text = h3.get_text(strip=True)
+            if text:
+                posts.append(text)
+
+        posts = posts[:5]
 
         if not posts:
             return "No Reddit discussions available."
 
         return "\n".join(posts)
 
-    except Exception as e:
-        return f"Reddit fetch failed: {str(e)}"
+    except Exception:
+        return "No Reddit discussions available."
